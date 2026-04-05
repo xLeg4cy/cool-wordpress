@@ -1,3 +1,5 @@
+args ?=
+
 install:
 	@composer install --prefer-dist
 	@bun install
@@ -8,7 +10,7 @@ update:
 .PHONY: update
 
 up:
-	@docker compose up
+	@docker compose up --remove-orphans
 .PHONY: up
 
 down:
@@ -18,3 +20,15 @@ down:
 destroy:
 	@docker compose down -v
 .PHONY: destroy
+
+env:
+	@docker compose exec wordpress $(args)
+.PHONY: env
+
+shell:
+	@docker compose exec -it wordpress bash
+.PHONY: shell
+
+cli:
+	@docker compose run --rm wordpress-cli -- $(args)
+.PHONY: cli
