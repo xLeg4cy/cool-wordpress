@@ -1,1 +1,1 @@
-# wordpress-base
+# cool-wordpress
