@@ -1,0 +1,39 @@
+services:
+  wordpress:
+    image: wordpress:latest
+    volumes:
+      - ./config/custom.ini:/usr/local/etc/php/conf.d/custom.ini
+    ports:
+      - 8080:80
+    environment:
+      - DB_NAME=${DB_NAME:-wordpress}
+
+      - WORDPRESS_DB_HOST=db
+      - WORDPRESS_DB_USER=${SERVICE_USER_DB}
+      - WORDPRESS_DB_PASSWORD=${SERVICE_PASSWORD_DB}
+      - WORDPRESS_DB_NAME=${DB_NAME}
+    depends_on:
+      - db
+
+  db:
+    image: mariadb:latest
+    volumes:
+      - db-data:/var/lib/mysql
+    environment:
+      - MARIADB_ROOT_PASSWORD=${SERVICE_PASSWORD_ROOT}
+      - MARIADB_DATABASE=${DB_NAME}
+      - MARIADB_USER=${SERVICE_USER_DB}
+      - MARIADB_PASSWORD=${SERVICE_PASSWORD_DB}
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    ports:
+      - 8081:80
+    environment:
+      - PMA_HOST=db
+      - PMA_USER=${SERVICE_USER_DB}
+      - PMA_PASSWORD=${SERVICE_PASSWORD_DB}
+
+volumes:
+  wordpress-data:
+  db-data:
