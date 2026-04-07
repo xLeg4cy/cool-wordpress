@@ -38,8 +38,10 @@ shell)
 	docker compose exec -it wordpress bash
 	;;
 cli)
-	# Passes all remaining arguments to the CLI container
 	docker compose run --rm wordpress-cli -- "$@"
+	;;
+composer)
+	docker compose exec -it wordpress composer "$@"
 	;;
 *)
 	echo "Unknown command: $COMMAND"
