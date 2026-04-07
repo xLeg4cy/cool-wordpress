@@ -6,7 +6,7 @@ services:
       - ./composer.json:/var/www/html/composer.json
       - ./composer.lock:/var/www/html/composer.lock
       - ./wp-content:/var/www/html/wp-content
-      - ${WP_DATA:-wp-data}:/var/www/html
+      - wp-data:/var/www/html
     ports:
       - ${WP_PORT}:80
     environment:
@@ -33,15 +33,14 @@ services:
           apt-get clean
           rm -rf /var/lib/apt/lists/*
         fi
-        # start
-        exec apache2-foreground
+        # proxy default entrypoint
+        exec /usr/local/bin/docker-entrypoint.sh apache2-foreground
 
   wordpress-cli:
     image: wordpress:cli
-    user: "33:33"
     volumes:
-      - ./wp-content:/var/www/html/wp-content
-      - ${WP_DATA:-wp-data}:/var/www/html
+      - ./config/custom.ini:/usr/local/etc/php/conf.d/custom.ini
+      - wp-data:/var/www/html
     environment:
       - WORDPRESS_DB_HOST=db
       - WORDPRESS_DB_USER=${SERVICE_USER_DB}
@@ -54,6 +53,11 @@ services:
         # Wait for Database
         until printf '\n' | nc db 3306 > /dev/null 2>&1; do
           echo "Waiting for DB..."
+          sleep 1
+        done
+        # Wait for wp-config.php
+        until [ -f wp-config.php ]; do
+          echo "Waiting for wp-config.php..."
           sleep 1
         done
         # Check if wp-settings.php exists; if not, download core files
@@ -97,3 +101,4 @@ services:
 
 volumes:
   db-data:
+  wp-data:
