@@ -1,0 +1,15 @@
+{
+    "type": "project",
+    "config": {
+        "vendor-dir": "content/vendor",
+        "allow-plugins": {
+            "johnpbloch/wordpress-core-installer": true
+        }
+    },
+    "extra": {
+        "wordpress-install-dir": "wp"
+    },
+    "require": {
+        "johnpbloch/wordpress": "6.8.2"
+    }
+}

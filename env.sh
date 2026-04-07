@@ -30,6 +30,9 @@ down)
 destroy)
 	docker compose down -v
 	;;
+reset)
+	$0 destroy && exec $0 up
+	;;
 env)
 	# Passes all remaining arguments to exec
 	docker compose exec wordpress "$@"
