@@ -22,7 +22,10 @@ update)
 	composer update
 	;;
 up)
-	docker compose up --remove-orphans
+	docker compose up --remove-orphans "$@"
+	;;
+stop)
+	docker compose stop "$@"
 	;;
 down)
 	docker compose down
@@ -31,10 +34,9 @@ destroy)
 	docker compose down -v
 	;;
 reset)
-	$0 destroy && exec $0 up
+	$0 destroy && exec $0 up "$@"
 	;;
-env)
-	# Passes all remaining arguments to exec
+exec)
 	docker compose exec wordpress "$@"
 	;;
 shell)
@@ -45,6 +47,9 @@ cli)
 	;;
 composer)
 	docker compose exec -it wordpress composer "$@"
+	;;
+status)
+	docker compose ps
 	;;
 *)
 	echo "Unknown command: $COMMAND"
