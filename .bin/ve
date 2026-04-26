@@ -1,0 +1,63 @@
+#!/bin/bash
+
+get_commands() {
+	sed -En 's/^([[:alnum:]]+)\)[[:space:]]*#[[:space:]]*(.*)/\1|\2/p' "$0" |
+		awk -F'|' '{ printf "\t%-12s %s\n", $1, $2 }'
+}
+
+# Check if a command was provided
+if [ -z "$1" ]; then
+	echo "Usage: $(basename "$0") <commands> [args]"
+	echo "Commands:"
+	get_commands
+	exit 1
+fi
+
+COMMAND=$1
+shift
+
+case "$COMMAND" in
+install) # Install dependencies (composer, bun)
+	composer install --prefer-dist
+	bun install
+	;;
+update) # Update composer dependencies
+	composer update
+	;;
+up) # Start services with docker compose
+	docker compose up --remove-orphans "$@"
+	;;
+stop) # Stop services
+	docker compose stop "$@"
+	;;
+down) # Stop and remove containers and networks
+	docker compose down
+	;;
+destroy) # Stop, remove containers, networks, and volumes
+	docker compose down -v
+	;;
+reset) # Destroy and bring up services again
+	$0 destroy && exec $0 up "$@"
+	;;
+exec) # Execute a command in the wordpress container
+	docker compose exec wordpress "$@"
+	;;
+shell) # Open a bash shell in the wordpress container
+	docker compose exec -it wordpress bash
+	;;
+cli) # Run a WP-CLI command
+	docker compose run --rm wordpress-cli -- "$@"
+	;;
+composer) # Run a composer command in the wordpress container
+	docker compose exec -it wordpress composer "$@"
+	;;
+status) # View status of containers
+	docker compose ps
+	;;
+*)
+	echo "Unknown command: $COMMAND"
+	echo "Available commands:"
+	get_commands
+	exit 1
+	;;
+esac
