@@ -2,7 +2,7 @@
     "name": "walkingfolks/cool-wordpress",
     "description": "Coolify Ready Wordpress Instance",
     "type": "project",
-    "repositories":[
+    "repositories": [
         {
             "name": "wpackagist",
             "type": "composer",
@@ -14,9 +14,7 @@
         }
     ],
     "require": {
-        "wpackagist-plugin/akismet":"dev-trunk",
-        "wpackagist-plugin/advanced-custom-fields":">=6.7.1",
-        "wpackagist-theme/frost":"*"
+        "wpackagist-plugin/advanced-custom-fields": ">=6.7.1"
     },
     "require-dev": {
         "lipemat/wp-unit": "^4.8"
@@ -24,16 +22,6 @@
     "config": {
         "allow-plugins": {
             "composer/installers": true
-        }
-    },
-    "extra": {
-        "installer-paths": {
-            "wp-content/mu-plugins/{$name}/": [
-                "wpackagist-plugin/akismet"
-            ],
-            "wp-content/plugins/{$name}/": [
-                "type:wordpress-plugin"
-            ]
         }
     }
 }
