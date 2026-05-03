@@ -1,0 +1,48 @@
+services:
+  wordpress:
+    build: ./docker/wordpress
+    volumes:
+      - wp-data:/var/www/html
+      - wp-content:/var/www/html/wp-content
+    environment:
+      - WORDPRESS_DB_HOST=db
+      - WORDPRESS_DB_USER=${SERVICE_USER_DB}
+      - WORDPRESS_DB_PASSWORD=${SERVICE_PASSWORD_DB}
+      - WORDPRESS_DB_NAME=${DB_NAME:-wordpress}
+
+  wordpress-cli:
+    stdin_open: true
+    tty: true
+    build: ./docker/wordpress-cli
+    volumes:
+      - wp-data:/var/www/html
+      - wp-content:/var/www/html/wp-content
+    environment:
+      - WORDPRESS_DB_HOST=db
+      - WORDPRESS_DB_USER=${SERVICE_USER_DB}
+      - WORDPRESS_DB_PASSWORD=${SERVICE_PASSWORD_DB}
+      - WORDPRESS_DB_NAME=${DB_NAME:-wordpress}
+
+  db:
+    image: mariadb:latest
+    volumes:
+      - db-data:/var/lib/mysql
+    environment:
+      - MARIADB_ROOT_PASSWORD=${SERVICE_PASSWORD_ROOT}
+      - MARIADB_DATABASE=${DB_NAME:-wordpress}
+      - MARIADB_USER=${SERVICE_USER_DB}
+      - MARIADB_PASSWORD=${SERVICE_PASSWORD_DB}
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    environment:
+      - PMA_HOST=db
+      - PMA_USER=${SERVICE_USER_DB}
+      - PMA_PASSWORD=${SERVICE_PASSWORD_DB}
+    labels:
+      - traefik.http.middlewares.authelia@file
+
+volumes:
+  wp-data:
+  wp-content:
+  db-data:
