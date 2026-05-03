@@ -15,7 +15,7 @@ services:
       - WORDPRESS_DB_PASSWORD=${SERVICE_PASSWORD_DB}
       - WORDPRESS_DB_NAME=${DB_NAME:-wordpress}
     depends_on:
-      - db
+      - mariadb
     entrypoint:
       - /bin/sh
       - -c
@@ -43,7 +43,7 @@ services:
       - ./wp-content:/var/www/html/wp-content
       - wp-data:/var/www/html
     environment:
-      - WORDPRESS_DB_HOST=db
+      - WORDPRESS_DB_HOST=mariadb
       - WORDPRESS_DB_USER=${SERVICE_USER_DB}
       - WORDPRESS_DB_PASSWORD=${SERVICE_PASSWORD_DB}
       - WORDPRESS_DB_NAME=${DB_NAME:-wordpress}
@@ -87,7 +87,7 @@ services:
           wp "$@"
         fi
 
-  db:
+  mariadb:
     image: mariadb:latest
     volumes:
       - db-data:/var/lib/mysql
