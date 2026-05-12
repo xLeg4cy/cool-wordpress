@@ -24,11 +24,6 @@ if ! wp core is-installed; then
 		--admin_password="${WP_PASSWORD}" \
 		--admin_email="${WP_EMAIL}" \
 		--skip-plugins
-	echo "Remove default plugins and themes"
-	rm -rf /var/www/html/wp-content/plugins/akismet
-	rm -rf /var/www/html/wp-content/plugins/hello.php
-	rm -rf /var/www/html/wp-content/themes/twentytwentyfour
-	rm -rf /var/www/html/wp-content/themes/twentytwentythree
 fi
 # Optional: execute passed arguments
 if [ $# -gt 0 ]; then
