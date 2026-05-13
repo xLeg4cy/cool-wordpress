@@ -10,7 +10,7 @@ services:
     ports:
       - ${WP_PORT}:80
     environment:
-      - WORDPRESS_DB_HOST=db
+      - WORDPRESS_DB_HOST=mariadb
       - WORDPRESS_DB_USER=${SERVICE_USER_DB}
       - WORDPRESS_DB_PASSWORD=${SERVICE_PASSWORD_DB}
       - WORDPRESS_DB_NAME=${DB_NAME:-wordpress}
@@ -52,7 +52,7 @@ services:
       - -c
       - |
         # Wait for Database
-        until printf '\n' | nc db 3306 > /dev/null 2>&1; do
+        until printf '\n' | nc mariadb 3306 > /dev/null 2>&1; do
           echo "Waiting for DB..."
           sleep 1
         done
@@ -102,7 +102,7 @@ services:
     ports:
       - ${DB_PORT}:80
     environment:
-      - PMA_HOST=db
+      - PMA_HOST=mariadb
       - PMA_USER=${SERVICE_USER_DB}
       - PMA_PASSWORD=${SERVICE_PASSWORD_DB}
 
