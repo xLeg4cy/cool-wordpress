@@ -13,7 +13,9 @@ wordpress/plugins/
 `.coolify/compose.yaml` is the canonical production deployment file for Coolify. The root `compose.yaml` and `config/custom.ini` are legacy/local-development files from the earlier project shape; for Coolify deployments, edit `.coolify/compose.yaml` and `wordpress/php/uploads.ini`.
 
 Drop extracted premium plugins or premium plugin zip files into `wordpress/plugins/`.
-The Docker image downloads the free `masteriyo` and `redis-cache` plugins during build, then seeds all plugin files into `/usr/src/wordpress/wp-content/plugins/` so the upstream WordPress entrypoint can initialize the named `wp-content` volume on first boot.
+The Docker image downloads the pinned free `learning-management-system` (Masteriyo) and `redis-cache` plugins during build, then seeds all plugin files into `/usr/src/wordpress/wp-content/plugins/` so the upstream WordPress entrypoint can initialize the named `wp-content` volume on first boot.
+
+Production versions are pinned in Docker/Compose for reproducible Coolify builds. See `VERSIONS.md` before changing WordPress, PHP, MariaDB, Redis, WP-CLI, Masteriyo Free, or Redis Object Cache versions.
 
 ## Coolify Setup
 

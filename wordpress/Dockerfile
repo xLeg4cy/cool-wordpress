@@ -1,6 +1,8 @@
-FROM wordpress:latest
+FROM wordpress:6.9.4-php8.3-apache
 
-ARG WP_CLI_VERSION=2.11.0
+ARG WP_CLI_VERSION=2.12.0
+ARG MASTERIYO_VERSION=2.2.1
+ARG REDIS_CACHE_VERSION=2.8.0
 
 USER root
 
@@ -16,8 +18,9 @@ RUN set -eux; \
     wp --allow-root --version
 
 RUN set -eux; \
-    wp --allow-root plugin install masteriyo redis-cache --path=/usr/src/wordpress; \
-    chown -R www-data:www-data /usr/src/wordpress/wp-content/plugins/masteriyo /usr/src/wordpress/wp-content/plugins/redis-cache
+    wp --allow-root plugin install learning-management-system --version="${MASTERIYO_VERSION}" --path=/usr/src/wordpress; \
+    wp --allow-root plugin install redis-cache --version="${REDIS_CACHE_VERSION}" --path=/usr/src/wordpress; \
+    chown -R www-data:www-data /usr/src/wordpress/wp-content/plugins/learning-management-system /usr/src/wordpress/wp-content/plugins/redis-cache
 
 COPY php/uploads.ini /usr/local/etc/php/conf.d/uploads.ini
 COPY plugins/ /usr/src/wordpress/wp-content/plugins/
