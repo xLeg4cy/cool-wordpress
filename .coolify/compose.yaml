@@ -1,0 +1,115 @@
+services:
+  wordpress:
+    build:
+      context: ../wordpress
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      database:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "${WORDPRESS_PORT:-8080}:80"
+    volumes:
+      - wordpress-content:/var/www/html/wp-content
+    environment:
+      WORDPRESS_DB_HOST: database:3306
+      WORDPRESS_DB_NAME: ${MARIADB_DATABASE}
+      WORDPRESS_DB_USER: ${MARIADB_USER}
+      WORDPRESS_DB_PASSWORD: ${MARIADB_PASSWORD}
+      WORDPRESS_TABLE_PREFIX: ${WORDPRESS_TABLE_PREFIX:-wp_}
+      WORDPRESS_AUTH_KEY: ${WORDPRESS_AUTH_KEY}
+      WORDPRESS_SECURE_AUTH_KEY: ${WORDPRESS_SECURE_AUTH_KEY}
+      WORDPRESS_LOGGED_IN_KEY: ${WORDPRESS_LOGGED_IN_KEY}
+      WORDPRESS_NONCE_KEY: ${WORDPRESS_NONCE_KEY}
+      WORDPRESS_AUTH_SALT: ${WORDPRESS_AUTH_SALT}
+      WORDPRESS_SECURE_AUTH_SALT: ${WORDPRESS_SECURE_AUTH_SALT}
+      WORDPRESS_LOGGED_IN_SALT: ${WORDPRESS_LOGGED_IN_SALT}
+      WORDPRESS_NONCE_SALT: ${WORDPRESS_NONCE_SALT}
+      WORDPRESS_CACHE_KEY_SALT: ${WORDPRESS_CACHE_KEY_SALT}
+      WORDPRESS_REDIS_HOST: redis
+      WORDPRESS_REDIS_PORT: 6379
+      WORDPRESS_REDIS_DATABASE: 0
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      MASTERIYO_GOOGLE_CLIENT_ID: ${MASTERIYO_GOOGLE_CLIENT_ID}
+      MASTERIYO_GOOGLE_CLIENT_SECRET: ${MASTERIYO_GOOGLE_CLIENT_SECRET}
+      MASTERIYO_FACEBOOK_APP_ID: ${MASTERIYO_FACEBOOK_APP_ID}
+      MASTERIYO_FACEBOOK_APP_SECRET: ${MASTERIYO_FACEBOOK_APP_SECRET}
+      WORDPRESS_CONFIG_EXTRA: |
+        if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') {
+          $_SERVER['HTTPS'] = 'on';
+        }
+
+        define('WP_REDIS_HOST', getenv('WORDPRESS_REDIS_HOST') ?: 'redis');
+        define('WP_REDIS_PORT', (int) (getenv('WORDPRESS_REDIS_PORT') ?: 6379));
+        define('WP_REDIS_DATABASE', (int) (getenv('WORDPRESS_REDIS_DATABASE') ?: 0));
+        define('WP_CACHE_KEY_SALT', getenv('WORDPRESS_CACHE_KEY_SALT') ?: '');
+
+        if (getenv('REDIS_PASSWORD')) {
+          define('WP_REDIS_PASSWORD', getenv('REDIS_PASSWORD'));
+        }
+
+        if (getenv('MASTERIYO_GOOGLE_CLIENT_ID')) {
+          define('MASTERIYO_GOOGLE_CLIENT_ID', getenv('MASTERIYO_GOOGLE_CLIENT_ID'));
+        }
+        if (getenv('MASTERIYO_GOOGLE_CLIENT_SECRET')) {
+          define('MASTERIYO_GOOGLE_CLIENT_SECRET', getenv('MASTERIYO_GOOGLE_CLIENT_SECRET'));
+        }
+        if (getenv('MASTERIYO_FACEBOOK_APP_ID')) {
+          define('MASTERIYO_FACEBOOK_APP_ID', getenv('MASTERIYO_FACEBOOK_APP_ID'));
+        }
+        if (getenv('MASTERIYO_FACEBOOK_APP_SECRET')) {
+          define('MASTERIYO_FACEBOOK_APP_SECRET', getenv('MASTERIYO_FACEBOOK_APP_SECRET'));
+        }
+
+  database:
+    image: mariadb:11.4
+    restart: unless-stopped
+    volumes:
+      - database-data:/var/lib/mysql
+    environment:
+      MARIADB_DATABASE: ${MARIADB_DATABASE}
+      MARIADB_USER: ${MARIADB_USER}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD}
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "mariadb-admin ping -h 127.0.0.1 -u$${MARIADB_USER} -p$${MARIADB_PASSWORD} --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command:
+      - sh
+      - -c
+      - |
+        if [ -n "$$REDIS_PASSWORD" ]; then
+          exec redis-server --appendonly yes --requirepass "$$REDIS_PASSWORD"
+        fi
+        exec redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - |
+          if [ -n "$$REDIS_PASSWORD" ]; then
+            redis-cli -a "$$REDIS_PASSWORD" ping | grep PONG
+          else
+            redis-cli ping | grep PONG
+          fi
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+volumes:
+  database-data:
+  redis-data:
+  wordpress-content:
