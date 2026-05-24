@@ -15,40 +15,37 @@ services:
       - wordpress-content:/var/www/html/wp-content
     environment:
       WORDPRESS_DB_HOST: database:3306
-      WORDPRESS_DB_NAME: ${MARIADB_DATABASE}
-      WORDPRESS_DB_USER: ${MARIADB_USER}
-      WORDPRESS_DB_PASSWORD: ${MARIADB_PASSWORD}
-      WORDPRESS_TABLE_PREFIX: ${WORDPRESS_TABLE_PREFIX:-wp_}
-      WORDPRESS_AUTH_KEY: ${WORDPRESS_AUTH_KEY}
-      WORDPRESS_SECURE_AUTH_KEY: ${WORDPRESS_SECURE_AUTH_KEY}
-      WORDPRESS_LOGGED_IN_KEY: ${WORDPRESS_LOGGED_IN_KEY}
-      WORDPRESS_NONCE_KEY: ${WORDPRESS_NONCE_KEY}
-      WORDPRESS_AUTH_SALT: ${WORDPRESS_AUTH_SALT}
-      WORDPRESS_SECURE_AUTH_SALT: ${WORDPRESS_SECURE_AUTH_SALT}
-      WORDPRESS_LOGGED_IN_SALT: ${WORDPRESS_LOGGED_IN_SALT}
-      WORDPRESS_NONCE_SALT: ${WORDPRESS_NONCE_SALT}
-      WORDPRESS_CACHE_KEY_SALT: ${WORDPRESS_CACHE_KEY_SALT}
+      WORDPRESS_DB_NAME: "${MARIADB_DATABASE:?Set MARIADB_DATABASE in Coolify}"
+      WORDPRESS_DB_USER: "${MARIADB_USER:?Set MARIADB_USER in Coolify}"
+      WORDPRESS_DB_PASSWORD: "${MARIADB_PASSWORD:?Set MARIADB_PASSWORD in Coolify}"
+      WORDPRESS_TABLE_PREFIX: "${WORDPRESS_TABLE_PREFIX:-wp_}"
+      WORDPRESS_AUTH_KEY: "${WORDPRESS_AUTH_KEY:?Set WORDPRESS_AUTH_KEY in Coolify}"
+      WORDPRESS_SECURE_AUTH_KEY: "${WORDPRESS_SECURE_AUTH_KEY:?Set WORDPRESS_SECURE_AUTH_KEY in Coolify}"
+      WORDPRESS_LOGGED_IN_KEY: "${WORDPRESS_LOGGED_IN_KEY:?Set WORDPRESS_LOGGED_IN_KEY in Coolify}"
+      WORDPRESS_NONCE_KEY: "${WORDPRESS_NONCE_KEY:?Set WORDPRESS_NONCE_KEY in Coolify}"
+      WORDPRESS_AUTH_SALT: "${WORDPRESS_AUTH_SALT:?Set WORDPRESS_AUTH_SALT in Coolify}"
+      WORDPRESS_SECURE_AUTH_SALT: "${WORDPRESS_SECURE_AUTH_SALT:?Set WORDPRESS_SECURE_AUTH_SALT in Coolify}"
+      WORDPRESS_LOGGED_IN_SALT: "${WORDPRESS_LOGGED_IN_SALT:?Set WORDPRESS_LOGGED_IN_SALT in Coolify}"
+      WORDPRESS_NONCE_SALT: "${WORDPRESS_NONCE_SALT:?Set WORDPRESS_NONCE_SALT in Coolify}"
+      WORDPRESS_CACHE_KEY_SALT: "${WORDPRESS_CACHE_KEY_SALT:?Set WORDPRESS_CACHE_KEY_SALT in Coolify}"
       WORDPRESS_REDIS_HOST: redis
       WORDPRESS_REDIS_PORT: 6379
       WORDPRESS_REDIS_DATABASE: 0
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
-      MASTERIYO_GOOGLE_CLIENT_ID: ${MASTERIYO_GOOGLE_CLIENT_ID}
-      MASTERIYO_GOOGLE_CLIENT_SECRET: ${MASTERIYO_GOOGLE_CLIENT_SECRET}
-      MASTERIYO_FACEBOOK_APP_ID: ${MASTERIYO_FACEBOOK_APP_ID}
-      MASTERIYO_FACEBOOK_APP_SECRET: ${MASTERIYO_FACEBOOK_APP_SECRET}
+      REDIS_PASSWORD: "${REDIS_PASSWORD:?Set REDIS_PASSWORD in Coolify}"
+      MASTERIYO_GOOGLE_CLIENT_ID: "${MASTERIYO_GOOGLE_CLIENT_ID:-}"
+      MASTERIYO_GOOGLE_CLIENT_SECRET: "${MASTERIYO_GOOGLE_CLIENT_SECRET:-}"
+      MASTERIYO_FACEBOOK_APP_ID: "${MASTERIYO_FACEBOOK_APP_ID:-}"
+      MASTERIYO_FACEBOOK_APP_SECRET: "${MASTERIYO_FACEBOOK_APP_SECRET:-}"
       WORDPRESS_CONFIG_EXTRA: |
         if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') {
           $_SERVER['HTTPS'] = 'on';
         }
 
-        define('WP_REDIS_HOST', getenv('WORDPRESS_REDIS_HOST') ?: 'redis');
-        define('WP_REDIS_PORT', (int) (getenv('WORDPRESS_REDIS_PORT') ?: 6379));
-        define('WP_REDIS_DATABASE', (int) (getenv('WORDPRESS_REDIS_DATABASE') ?: 0));
-        define('WP_CACHE_KEY_SALT', getenv('WORDPRESS_CACHE_KEY_SALT') ?: '');
-
-        if (getenv('REDIS_PASSWORD')) {
-          define('WP_REDIS_PASSWORD', getenv('REDIS_PASSWORD'));
-        }
+        define('WP_REDIS_HOST', getenv('WORDPRESS_REDIS_HOST'));
+        define('WP_REDIS_PORT', (int) getenv('WORDPRESS_REDIS_PORT'));
+        define('WP_REDIS_DATABASE', (int) getenv('WORDPRESS_REDIS_DATABASE'));
+        define('WP_REDIS_PASSWORD', getenv('REDIS_PASSWORD'));
+        define('WP_CACHE_KEY_SALT', getenv('WORDPRESS_CACHE_KEY_SALT'));
 
         if (getenv('MASTERIYO_GOOGLE_CLIENT_ID')) {
           define('MASTERIYO_GOOGLE_CLIENT_ID', getenv('MASTERIYO_GOOGLE_CLIENT_ID'));
@@ -62,6 +59,11 @@ services:
         if (getenv('MASTERIYO_FACEBOOK_APP_SECRET')) {
           define('MASTERIYO_FACEBOOK_APP_SECRET', getenv('MASTERIYO_FACEBOOK_APP_SECRET'));
         }
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   database:
     image: mariadb:11.4
@@ -69,16 +71,21 @@ services:
     volumes:
       - database-data:/var/lib/mysql
     environment:
-      MARIADB_DATABASE: ${MARIADB_DATABASE}
-      MARIADB_USER: ${MARIADB_USER}
-      MARIADB_PASSWORD: ${MARIADB_PASSWORD}
-      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
+      MARIADB_DATABASE: "${MARIADB_DATABASE:?Set MARIADB_DATABASE in Coolify}"
+      MARIADB_USER: "${MARIADB_USER:?Set MARIADB_USER in Coolify}"
+      MARIADB_PASSWORD: "${MARIADB_PASSWORD:?Set MARIADB_PASSWORD in Coolify}"
+      MARIADB_ROOT_PASSWORD: "${MARIADB_ROOT_PASSWORD:?Set MARIADB_ROOT_PASSWORD in Coolify}"
     healthcheck:
       test: ["CMD-SHELL", "mariadb-admin ping -h 127.0.0.1 -u$${MARIADB_USER} -p$${MARIADB_PASSWORD} --silent"]
       interval: 10s
       timeout: 5s
       retries: 10
       start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   redis:
     image: redis:7-alpine
@@ -87,27 +94,25 @@ services:
       - sh
       - -c
       - |
-        if [ -n "$$REDIS_PASSWORD" ]; then
-          exec redis-server --appendonly yes --requirepass "$$REDIS_PASSWORD"
-        fi
-        exec redis-server --appendonly yes
+        : "$${REDIS_PASSWORD:?REDIS_PASSWORD must be set}"
+        exec redis-server --appendonly yes --requirepass "$${REDIS_PASSWORD}"
     volumes:
       - redis-data:/data
     environment:
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_PASSWORD: "${REDIS_PASSWORD:?Set REDIS_PASSWORD in Coolify}"
     healthcheck:
       test:
         - CMD-SHELL
-        - |
-          if [ -n "$$REDIS_PASSWORD" ]; then
-            redis-cli -a "$$REDIS_PASSWORD" ping | grep PONG
-          else
-            redis-cli ping | grep PONG
-          fi
+        - redis-cli -a "$${REDIS_PASSWORD}" ping | grep PONG
       interval: 10s
       timeout: 5s
       retries: 10
       start_period: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 volumes:
   database-data:

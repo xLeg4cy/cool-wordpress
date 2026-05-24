@@ -10,6 +10,8 @@ wordpress/php/uploads.ini
 wordpress/plugins/
 ```
 
+`.coolify/compose.yaml` is the canonical production deployment file for Coolify. The root `compose.yaml` and `config/custom.ini` are legacy/local-development files from the earlier project shape; for Coolify deployments, edit `.coolify/compose.yaml` and `wordpress/php/uploads.ini`.
+
 Drop extracted premium plugins or premium plugin zip files into `wordpress/plugins/`.
 The Docker image downloads the free `masteriyo` and `redis-cache` plugins during build, then seeds all plugin files into `/usr/src/wordpress/wp-content/plugins/` so the upstream WordPress entrypoint can initialize the named `wp-content` volume on first boot.
 
@@ -19,10 +21,9 @@ The Docker image downloads the free `masteriyo` and `redis-cache` plugins during
 2. Set the Docker Compose file path to `.coolify/compose.yaml`.
 3. Set the build context behavior to use the repository root. The Compose file references `../wordpress` because Docker Compose resolves relative paths from `.coolify/`.
 4. Add all variables from `.env.sample` in Coolify's environment variable UI.
-5. Generate strong values for all `WORDPRESS_*_KEY`, `WORDPRESS_*_SALT`, `MARIADB_PASSWORD`, `MARIADB_ROOT_PASSWORD`, and `REDIS_PASSWORD`.
+5. Generate strong values for all `WORDPRESS_*_KEY`, `WORDPRESS_*_SALT`, `WORDPRESS_CACHE_KEY_SALT`, `MARIADB_PASSWORD`, `MARIADB_ROOT_PASSWORD`, and `REDIS_PASSWORD`.
 6. Set `WORDPRESS_TABLE_PREFIX` to a short prefix ending in `_`.
-7. Set `WORDPRESS_CACHE_KEY_SALT` to a unique value for this site.
-8. Set the Masteriyo social login variables in Coolify, not in git:
+7. Set the Masteriyo social login variables in Coolify only when social login is needed:
 
 ```text
 MASTERIYO_GOOGLE_CLIENT_ID
@@ -31,10 +32,24 @@ MASTERIYO_FACEBOOK_APP_ID
 MASTERIYO_FACEBOOK_APP_SECRET
 ```
 
-9. Deploy the stack.
-10. In WordPress, activate Masteriyo, Masteriyo Pro, and Redis Object Cache.
-11. In Redis Object Cache settings, enable object caching.
-12. In Masteriyo Pro Social Login settings, configure Google and Facebook using the credentials stored in Coolify. If the add-on UI does not read environment constants directly, enter the credentials in the WordPress admin; they will be stored in the database and protected by the database backup runbook below.
+8. Deploy the stack.
+9. In WordPress, activate Masteriyo, Masteriyo Pro, and Redis Object Cache.
+10. In Redis Object Cache settings, enable object caching.
+11. In Masteriyo Pro Social Login settings, configure Google and Facebook using the credentials stored in Coolify. If the add-on UI does not read environment constants directly, enter the credentials in the WordPress admin; they will be stored in the database and protected by the database backup runbook below.
+
+## Coolify Operations Notes
+
+1. Keep MariaDB and Redis private; only the WordPress service should expose a public port or domain.
+2. Redis requires `REDIS_PASSWORD`; the Compose file intentionally fails deployment if it is missing.
+3. The Compose file keeps `restart: unless-stopped`, which fits Coolify-managed services better than a bounded retry count.
+4. Log rotation is configured in Compose with the `json-file` driver, `10m` max size, and `3` files per service.
+5. Prefer Coolify's resource limit controls for CPU and memory if your Coolify installation exposes them; Compose `deploy.resources` is not consistently enforced by regular Docker Compose runtimes.
+
+## PHP Limits
+
+`wordpress/php/uploads.ini` is copied into the production WordPress image by `wordpress/Dockerfile`. Edit this file when changing upload size, memory, execution time, or form variable limits for Coolify.
+
+`config/custom.ini` is not used by the Coolify Dockerfile. Treat it as legacy/local-development configuration unless you intentionally keep the root `compose.yaml` workflow.
 
 ## Database Backup Runbook
 
